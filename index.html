@@ -1,60 +1,71 @@
+<!--
+  This file was generated during the ChatGPT session at:
+  https://chatgpt.com/share/68c72138-44bc-8002-b52d-0f52559cc24f
+-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LexClinic Research</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.css">
+  <title>LexClinic Research Memos</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; }
-    h1 { font-size: 2em; }
-    .memo { margin-bottom: 1em; }
-    .memo a { font-size: 1.2em; color: #0366d6; text-decoration: none; }
-    .memo a:hover { text-decoration: underline; }
-    .memo p { margin: 0.5em 0; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    .memo {
+      margin-bottom: 10px;
+    }
+    .memo a {
+      text-decoration: none;
+      color: #007BFF;
+    }
+    .memo a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
-<body class="markdown-body">
-  <h1>LexClinic Research</h1>
-  <p>Welcome to our collection of research memos. Below is a list of our published memos:</p>
-  <div id="memo-list"></div>
+<body>
+  <h1>LexClinic Research Memos</h1>
+  <div id="memo-list">
+    <p>Loading memos...</p>
+  </div>
 
   <script>
-    const memoList = document.getElementById('memo-list');
-    const baseUrl = 'https://raw.githubusercontent.com/lexclinic/research/main/';
+    fetch('memos.json')
+      .then(response => response.json())
+      .then(data => {
+        const memoList = document.getElementById('memo-list');
+        memoList.innerHTML = '';
 
-    async function fetchMemoList() {
-      try {
-        const response = await fetch(baseUrl);
-        const text = await response.text();
-        const fileNames = text.match(/href="([^"]+\.md)"/g)
-          .map(link => link.match(/href="([^"]+\.md)"/)[1])
-          .filter(name => !name.includes('/')); // Exclude subdirectories
+        ['root', 'signatures'].forEach(folder => {
+          if (data[folder] && data[folder].length > 0) {
+            const section = document.createElement('section');
+            const heading = document.createElement('h2');
+            heading.textContent = folder === 'root' ? 'General Memos' : 'Signatures Memos';
+            section.appendChild(heading);
 
-        const subdirResponse = await fetch(baseUrl + 'signatures/');
-        const subdirText = await subdirResponse.text();
-        const subdirFileNames = subdirText.match(/href="([^"]+\.md)"/g)
-          .map(link => link.match(/href="([^"]+\.md)"/)[1])
-          .map(name => 'signatures/' + name);
+            data[folder].forEach(file => {
+              const div = document.createElement('div');
+              div.classList.add('memo');
+              const link = document.createElement('a');
+              link.href = folder === 'root' ? `/${file}` : `signatures/${file}`;
+              link.textContent = file.replace(/\.md$/, '').replace(/_/g, ' ');
+              div.appendChild(link);
+              section.appendChild(div);
+            });
 
-        const allFileNames = [...fileNames, ...subdirFileNames];
-
-        allFileNames.forEach(fileName => {
-          const memo = document.createElement('div');
-          memo.classList.add('memo');
-          const memoLink = document.createElement('a');
-          memoLink.href = baseUrl + fileName;
-          memoLink.textContent = fileName.replace(/\.md$/, '').replace(/_/g, ' ');
-          memo.appendChild(memoLink);
-          memoList.appendChild(memo);
+            memoList.appendChild(section);
+          }
         });
-      } catch (error) {
-        console.error('Error fetching memo list:', error);
-        memoList.innerHTML = '<p>Failed to load memo list. Please try again later.</p>';
-      }
-    }
-
-    fetchMemoList();
+      })
+      .catch(error => {
+        console.error('Error loading memos:', error);
+        document.getElementById('memo-list').innerHTML = '<p>Failed to load memo list. Please try again later.</p>';
+      });
   </script>
 </body>
 </html>
