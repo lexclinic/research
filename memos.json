@@ -1,0 +1,11 @@
+{
+  "_comment": "This file was generated during the ChatGPT session at: https://chatgpt.com/share/68c72138-44bc-8002-b52d-0f52559cc24f",
+  "root": [
+    "inverted-precedent.md",
+    "joyfork-vs-ragequit.md",
+    "erc-7827-integration.md"
+  ],
+  "signatures": [
+    "oauth_idp_strategy_2025.md"
+  ]
+}
