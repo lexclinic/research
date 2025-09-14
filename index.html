@@ -1,6 +1,8 @@
 <!--
   This file dynamically loads all Markdown memos from the repository and its subfolders:
   https://github.com/lexclinic/research
+
+  Code generated in the https://chatgpt.com/share/68c72bf6-69e8-8002-bcee-89f6497efe32 session.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -17,9 +19,15 @@
     h1 {
       color: #333;
     }
-    h2 {
+    h2.folder-title {
       color: #555;
       margin-top: 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .memo-list {
+      margin-left: 20px;
+      display: none;
     }
     .memo {
       margin-bottom: 10px;
@@ -40,6 +48,10 @@
       background: #fff;
     }
   </style>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- marked.js -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
   <h1>LexClinic Research Memos</h1>
@@ -51,16 +63,13 @@
     <p>Select a memo to view its content.</p>
   </div>
 
-  <!-- Include marked.js via CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
   <script>
     const repoOwner = 'lexclinic';
     const repoName = 'research';
-    const memoList = document.getElementById('memo-list');
-    const memoContent = document.getElementById('memo-content');
+    const memoList = $('#memo-list');
+    const memoContent = $('#memo-content');
 
-    // Recursively fetch all Markdown files from the repo
+    // Recursively fetch all Markdown files
     async function fetchMarkdownFiles(path = '') {
       const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${path}`;
       const res = await fetch(apiUrl);
@@ -89,46 +98,60 @@
           return res.text();
         })
         .then(text => {
-          memoContent.innerHTML = marked.parse(text);
+          memoContent.html(marked.parse(text));
         })
         .catch(err => {
-          memoContent.innerHTML = `<p style="color:red;">Error loading memo: ${err.message}</p>`;
+          memoContent.html(`<p style="color:red;">Error loading memo: ${err.message}</p>`);
         });
     }
 
-    // Build memo list dynamically
+    // Build memo list grouped by folder
     fetchMarkdownFiles()
       .then(mdFiles => {
-        memoList.innerHTML = '';
+        memoList.empty();
         if (mdFiles.length === 0) {
-          memoList.innerHTML = '<p>No memos found.</p>';
+          memoList.html('<p>No memos found.</p>');
           return;
         }
 
-        const section = document.createElement('section');
-        const heading = document.createElement('h2');
-        heading.textContent = 'All Memos';
-        section.appendChild(heading);
-
+        // Group files by folder
+        const folders = {};
         mdFiles.forEach(file => {
-          const div = document.createElement('div');
-          div.classList.add('memo');
-          const link = document.createElement('a');
-
-          // Friendly name for the how-to guide
-          link.textContent = file.name === "github-pages-cloudflare-setup.md"
-            ? "GitHub Pages + Cloudflare How-To"
-            : file.name.replace(/\.md$/, '').replace(/_/g, ' ');
-
-          link.onclick = () => loadMemo(file.download_url);
-          div.appendChild(link);
-          section.appendChild(div);
+          const parts = file.path.split('/');
+          const folder = parts.length > 1 ? parts[0] : 'root';
+          if (!folders[folder]) folders[folder] = [];
+          folders[folder].push(file);
         });
 
-        memoList.appendChild(section);
+        // Build collapsible sections
+        Object.keys(folders).sort().forEach(folderName => {
+          const heading = $('<h2>')
+            .addClass('folder-title')
+            .text(folderName === 'root' ? 'General Memos' : folderName)
+            .click(function() {
+              $(this).next('.memo-list').slideToggle();
+            });
+
+          const list = $('<div>').addClass('memo-list');
+
+          folders[folderName].forEach(file => {
+            const linkText = file.name === "github-pages-cloudflare-setup.md"
+              ? "GitHub Pages + Cloudflare How-To"
+              : file.name.replace(/\.md$/, '').replace(/_/g, ' ');
+
+            const link = $('<a>')
+              .text(linkText)
+              .click(() => loadMemo(file.download_url));
+
+            const div = $('<div>').addClass('memo').append(link);
+            list.append(div);
+          });
+
+          memoList.append(heading).append(list);
+        });
       })
       .catch(err => {
-        memoList.innerHTML = `<p style="color:red;">Error fetching memos: ${err.message}</p>`;
+        memoList.html(`<p style="color:red;">Error fetching memos: ${err.message}</p>`);
       });
   </script>
 </body>
