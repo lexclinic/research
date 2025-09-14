@@ -49,7 +49,7 @@ This section documents how portions of this README and supporting files (like `i
 
 ## 📜 License
 
-The content in this repository is licensed under the [Attribution-ShareAlike 4.0 International](LICENSE) perminantly located at [https://creativecommons.org/licenses/by-sa/4.0/legalcode.en](https://creativecommons.org/licenses/by-sa/4.0/legalcode.en).
+The content in this repository is licensed under the [Attribution-ShareAlike 4.0 International](LICENSE) permanently located at [https://creativecommons.org/licenses/by-sa/4.0/legalcode.en](https://creativecommons.org/licenses/by-sa/4.0/legalcode.en).
 
 We selected this license using the [Creative Commons License Chooser](https://creativecommons.org/chooser), ensuring our work is openly reusable.  
 This choice is appropriate because these are **research publications**, not software; software requires **FLOSS licenses**, while our memos and documents are intended for broad reuse.
