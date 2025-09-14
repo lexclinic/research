@@ -8,7 +8,7 @@ The memos are rendered and accessible via GitHub Pages:
 
 👉 [https://lexclinic.github.io/research/](https://lexclinic.github.io/research/)
 
-## 📂 Directory Structure
+## 📂 Directory Structure (As of September 14, 2025)
 
 - `index.html`: The landing page that lists and renders all memos.
 - `signatures/`: Contains research memos related to digital signatures.
