@@ -1,8 +1,6 @@
 <!--
   This file dynamically loads all Markdown memos from the repository and its subfolders:
   https://github.com/lexclinic/research
-
-  Code generated in the https://chatgpt.com/share/68c72bf6-69e8-8002-bcee-89f6497efe32 session.
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -24,6 +22,16 @@
       margin-top: 20px;
       cursor: pointer;
       user-select: none;
+      position: relative;
+    }
+    h2.folder-title::after {
+      content: "▼";
+      position: absolute;
+      right: 0;
+      transition: transform 0.2s ease;
+    }
+    h2.folder-title.expanded::after {
+      transform: rotate(-180deg);
     }
     .memo-list {
       margin-left: 20px;
@@ -105,6 +113,12 @@
         });
     }
 
+    // Helper to get memo path from URL
+    function getMemoFromURL() {
+      let path = window.location.pathname.slice(1); // remove leading "/"
+      return path ? path + '.md' : null;
+    }
+
     // Build memo list grouped by folder
     fetchMarkdownFiles()
       .then(mdFiles => {
@@ -127,8 +141,9 @@
         Object.keys(folders).sort().forEach(folderName => {
           const heading = $('<h2>')
             .addClass('folder-title')
-            .text(folderName === 'root' ? 'General Memos' : folderName)
+            .text(folderName === 'root' ? 'General Memos ▼' : folderName + ' ▼')
             .click(function() {
+              $(this).toggleClass('expanded');
               $(this).next('.memo-list').slideToggle();
             });
 
@@ -139,9 +154,16 @@
               ? "GitHub Pages + Cloudflare How-To"
               : file.name.replace(/\.md$/, '').replace(/_/g, ' ');
 
+            const urlPath = '/' + file.path.replace(/\.md$/, '');
+
             const link = $('<a>')
+              .attr('href', urlPath)
               .text(linkText)
-              .click(() => loadMemo(file.download_url));
+              .click(function(e) {
+                e.preventDefault();
+                window.history.pushState({}, '', urlPath);
+                loadMemo(file.download_url);
+              });
 
             const div = $('<div>').addClass('memo').append(link);
             list.append(div);
@@ -149,10 +171,36 @@
 
           memoList.append(heading).append(list);
         });
+
+        // Load memo if URL has a path
+        const initialFilePath = getMemoFromURL();
+        if (initialFilePath) {
+          const initialFile = mdFiles.find(f => f.path === initialFilePath);
+          if (initialFile) {
+            loadMemo(initialFile.download_url);
+            const folder = initialFile.path.split('/')[0] || 'root';
+            $('.folder-title').filter(function() {
+              return $(this).text().startsWith(folder === 'root' ? 'General Memos' : folder);
+            }).addClass('expanded').next('.memo-list').show();
+          }
+        }
       })
       .catch(err => {
         memoList.html(`<p style="color:red;">Error fetching memos: ${err.message}</p>`);
       });
+
+    // Handle browser back/forward navigation
+    window.onpopstate = function() {
+      const path = getMemoFromURL();
+      if (path) {
+        fetchMarkdownFiles().then(mdFiles => {
+          const file = mdFiles.find(f => f.path === path);
+          if (file) loadMemo(file.download_url);
+        });
+      } else {
+        memoContent.html('<p>Select a memo to view its content.</p>');
+      }
+    };
   </script>
 </body>
 </html>
