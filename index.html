@@ -12,9 +12,14 @@
     body {
       font-family: Arial, sans-serif;
       margin: 20px;
+      background-color: #fdfdfd;
     }
     h1 {
       color: #333;
+    }
+    h2 {
+      color: #555;
+      margin-top: 20px;
     }
     .memo {
       margin-bottom: 10px;
@@ -35,37 +40,39 @@
   </div>
 
   <script>
-    fetch('memos.json')
-      .then(response => response.json())
-      .then(data => {
-        const memoList = document.getElementById('memo-list');
-        memoList.innerHTML = '';
+    // Inline JSON with memo list
+    const data = {
+      "root": [
+        "README.md"
+      ],
+      "signatures": [
+        "oauth_idp_strategy_2025.md"
+      ]
+    };
 
-        ['root', 'signatures'].forEach(folder => {
-          if (data[folder] && data[folder].length > 0) {
-            const section = document.createElement('section');
-            const heading = document.createElement('h2');
-            heading.textContent = folder === 'root' ? 'General Memos' : 'Signatures Memos';
-            section.appendChild(heading);
+    const memoList = document.getElementById('memo-list');
+    memoList.innerHTML = '';
 
-            data[folder].forEach(file => {
-              const div = document.createElement('div');
-              div.classList.add('memo');
-              const link = document.createElement('a');
-              link.href = folder === 'root' ? `/${file}` : `signatures/${file}`;
-              link.textContent = file.replace(/\.md$/, '').replace(/_/g, ' ');
-              div.appendChild(link);
-              section.appendChild(div);
-            });
+    ['root', 'signatures'].forEach(folder => {
+      if (data[folder] && data[folder].length > 0) {
+        const section = document.createElement('section');
+        const heading = document.createElement('h2');
+        heading.textContent = folder === 'root' ? 'General Memos' : 'Signatures Memos';
+        section.appendChild(heading);
 
-            memoList.appendChild(section);
-          }
+        data[folder].forEach(file => {
+          const div = document.createElement('div');
+          div.classList.add('memo');
+          const link = document.createElement('a');
+          link.href = folder === 'root' ? `/${file}` : `signatures/${file}`;
+          link.textContent = file.replace(/\.md$/, '').replace(/_/g, ' ');
+          div.appendChild(link);
+          section.appendChild(div);
         });
-      })
-      .catch(error => {
-        console.error('Error loading memos:', error);
-        document.getElementById('memo-list').innerHTML = '<p>Failed to load memo list. Please try again later.</p>';
-      });
+
+        memoList.appendChild(section);
+      }
+    });
   </script>
 </body>
 </html>
