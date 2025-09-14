@@ -1,6 +1,6 @@
 <!--
-  This file was generated during the ChatGPT session at:
-  https://chatgpt.com/share/68c72138-44bc-8002-b52d-0f52559cc24f
+  This file was generated to dynamically load all Markdown memos from the repository:
+  https://github.com/lexclinic/research
 -->
 <!DOCTYPE html>
 <html lang="en">
@@ -55,53 +55,59 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
   <script>
-    const data = {
-      "root": ["README.md"],
-      "signatures": ["oauth_idp_strategy_2025.md"]
-    };
-
+    const repoOwner = 'lexclinic';
+    const repoName = 'research';
     const memoList = document.getElementById('memo-list');
-    memoList.innerHTML = '';
-
     const memoContent = document.getElementById('memo-content');
 
-    function loadMemo(filePath) {
-      fetch(filePath)
+    // Fetch all files in the repository root
+    fetch(`https://api.github.com/repos/${repoOwner}/${repoName}/contents/`)
+      .then(res => res.json())
+      .then(files => {
+        memoList.innerHTML = '';
+        const mdFiles = files.filter(f => f.name.endsWith('.md'));
+
+        if (mdFiles.length === 0) {
+          memoList.innerHTML = '<p>No memos found.</p>';
+          return;
+        }
+
+        const section = document.createElement('section');
+        const heading = document.createElement('h2');
+        heading.textContent = 'General Memos';
+        section.appendChild(heading);
+
+        mdFiles.forEach(file => {
+          const div = document.createElement('div');
+          div.classList.add('memo');
+          const link = document.createElement('a');
+          link.textContent = file.name === "github-pages-cloudflare-setup.md"
+            ? "GitHub Pages + Cloudflare How-To"
+            : file.name.replace(/\.md$/, '').replace(/_/g, ' ');
+          link.onclick = () => loadMemo(file.download_url);
+          div.appendChild(link);
+          section.appendChild(div);
+        });
+
+        memoList.appendChild(section);
+      })
+      .catch(err => {
+        memoList.innerHTML = `<p style="color:red;">Error fetching memos: ${err.message}</p>`;
+      });
+
+    function loadMemo(url) {
+      fetch(url)
         .then(res => {
-          if (!res.ok) throw new Error('Failed to fetch ' + filePath);
+          if (!res.ok) throw new Error('Failed to fetch ' + url);
           return res.text();
         })
         .then(text => {
           memoContent.innerHTML = marked.parse(text);
         })
         .catch(err => {
-          memoContent.innerHTML = '<p style="color:red;">Error loading memo: ' + err.message + '</p>';
+          memoContent.innerHTML = `<p style="color:red;">Error loading memo: ${err.message}</p>`;
         });
     }
-
-    ['root', 'signatures'].forEach(folder => {
-      if (data[folder] && data[folder].length > 0) {
-        const section = document.createElement('section');
-        const heading = document.createElement('h2');
-        heading.textContent = folder === 'root' ? 'General Memos' : 'Signatures Memos';
-        section.appendChild(heading);
-
-        data[folder].forEach(file => {
-          const div = document.createElement('div');
-          div.classList.add('memo');
-          const link = document.createElement('a');
-          link.textContent = file.replace(/\.md$/, '').replace(/_/g, ' ');
-          link.onclick = () => {
-            const path = folder === 'root' ? file : 'signatures/' + file;
-            loadMemo(path);
-          };
-          div.appendChild(link);
-          section.appendChild(div);
-        });
-
-        memoList.appendChild(section);
-      }
-    });
   </script>
 </body>
 </html>
