@@ -27,9 +27,17 @@
     .memo a {
       text-decoration: none;
       color: #007BFF;
+      cursor: pointer;
     }
     .memo a:hover {
       text-decoration: underline;
+    }
+    #memo-content {
+      margin-top: 30px;
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      background: #fff;
     }
   </style>
 </head>
@@ -39,19 +47,37 @@
     <p>Loading memos...</p>
   </div>
 
+  <div id="memo-content">
+    <p>Select a memo to view its content.</p>
+  </div>
+
+  <!-- Include marked.js via CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
   <script>
-    // Inline JSON with memo list
     const data = {
-      "root": [
-        "README.md"
-      ],
-      "signatures": [
-        "oauth_idp_strategy_2025.md"
-      ]
+      "root": ["README.md"],
+      "signatures": ["oauth_idp_strategy_2025.md"]
     };
 
     const memoList = document.getElementById('memo-list');
     memoList.innerHTML = '';
+
+    const memoContent = document.getElementById('memo-content');
+
+    function loadMemo(filePath) {
+      fetch(filePath)
+        .then(res => {
+          if (!res.ok) throw new Error('Failed to fetch ' + filePath);
+          return res.text();
+        })
+        .then(text => {
+          memoContent.innerHTML = marked.parse(text);
+        })
+        .catch(err => {
+          memoContent.innerHTML = '<p style="color:red;">Error loading memo: ' + err.message + '</p>';
+        });
+    }
 
     ['root', 'signatures'].forEach(folder => {
       if (data[folder] && data[folder].length > 0) {
@@ -64,8 +90,11 @@
           const div = document.createElement('div');
           div.classList.add('memo');
           const link = document.createElement('a');
-          link.href = folder === 'root' ? `/${file}` : `signatures/${file}`;
           link.textContent = file.replace(/\.md$/, '').replace(/_/g, ' ');
+          link.onclick = () => {
+            const path = folder === 'root' ? file : 'signatures/' + file;
+            loadMemo(path);
+          };
           div.appendChild(link);
           section.appendChild(div);
         });
